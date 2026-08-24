@@ -8,6 +8,7 @@ import contextlib
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 from script import TITLE, SCENES, INTRO_IMAGE, OUTRO_IMAGE
+import longcat_video_gen
 
 _ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
          "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
@@ -233,6 +234,42 @@ def make_silent_clip(image_path, duration, out_path, start_frame_offset=0, max_z
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
 
+def escape_drawtext(text):
+    return (text.replace("\\", "\\\\").replace(":", "\\:")
+            .replace("'", "’").replace("%", "\\%"))
+
+
+def caption_overlay_filter(timings, font_path=FONT_BOLD, font_size=84, text_y_frac=0.78):
+    # Burns each phrase in as an ffmpeg drawtext, timed to match the same
+    # phrase_timings used to cut per-phrase cards in the zoompan path --
+    # used instead of make_card() when a scene's background is an
+    # animated LongCat-Video clip rather than a static image.
+    parts = []
+    for phrase, start, dur in timings:
+        end = start + dur
+        esc = escape_drawtext(phrase)
+        parts.append(
+            f"drawtext=fontfile={font_path}:text='{esc}':fontsize={font_size}:"
+            f"fontcolor=white:shadowcolor=black@0.6:shadowx=3:shadowy=3:"
+            f"x=(w-text_w)/2:y=h*{text_y_frac}-text_h/2:"
+            f"enable='between(t\\,{start:.3f}\\,{end:.3f})'"
+        )
+    wm = escape_drawtext("THE ONE MINUTE CHANNEL")
+    parts.append(
+        f"drawtext=fontfile={font_path}:text='{wm}':fontsize=32:"
+        f"fontcolor=white@0.7:x=(w-text_w)/2:y=h-70"
+    )
+    return ",".join(parts)
+
+
+def overlay_captions(video_in, video_out, timings):
+    vf = caption_overlay_filter(timings)
+    subprocess.run(
+        ["ffmpeg", "-y", "-i", video_in, "-vf", vf, "-an", "-c:v", "libx264", video_out],
+        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+    )
+
+
 def fade_wav(in_wav, out_wav, fade_s=0.02):
     dur = wav_duration(in_wav)
     st = max(dur - fade_s, 0)
@@ -321,13 +358,35 @@ def main():
         # per-phrase audio cut produced.
         normalized = normalize_narration(scene["narration"])
         timings = phrase_timings(normalized, dur, chunk_size=4)
-        for j, (phrase, start, pdur) in enumerate(timings):
-            phrase_img = f"{OUT}/scene_{i}_p{j}.png"
-            make_card(phrase, i, phrase_img, bg_image=scene["bg_image"])
-            silent_clip = f"{OUT}/scene_{i}_p{j}_silent.mp4"
-            make_silent_clip(phrase_img, pdur, silent_clip, start_frame_offset=cumulative_frames)
-            silent_clip_paths.append(silent_clip)
-            cumulative_frames += int(pdur * 30)
+
+        # Optional path: animate the whole scene with LongCat-Video
+        # (one generated clip per scene) instead of a zoompan on a static
+        # card per caption phrase, with captions burned in afterward via
+        # ffmpeg drawtext at the same timings. Falls back to the zoompan
+        # path below on any failure or when disabled (default).
+        used_longcat = False
+        if longcat_video_gen.is_available():
+            longcat_raw = f"{OUT}/scene_{i}_longcat.mp4"
+            motion_prompt = scene.get("motion_prompt", scene["narration"])
+            ok = longcat_video_gen.generate_scene_clip(
+                scene["bg_image"], dur, longcat_raw, motion_prompt,
+                tmp_dir=OUT,
+            )
+            if ok:
+                scene_silent = f"{OUT}/scene_{i}_silent.mp4"
+                overlay_captions(longcat_raw, scene_silent, timings)
+                silent_clip_paths.append(scene_silent)
+                cumulative_frames += int(dur * 30)
+                used_longcat = True
+
+        if not used_longcat:
+            for j, (phrase, start, pdur) in enumerate(timings):
+                phrase_img = f"{OUT}/scene_{i}_p{j}.png"
+                make_card(phrase, i, phrase_img, bg_image=scene["bg_image"])
+                silent_clip = f"{OUT}/scene_{i}_p{j}_silent.mp4"
+                make_silent_clip(phrase_img, pdur, silent_clip, start_frame_offset=cumulative_frames)
+                silent_clip_paths.append(silent_clip)
+                cumulative_frames += int(pdur * 30)
 
         scene_faded = f"{OUT}/scene_{i}_faded.wav"
         fade_wav(wav_path, scene_faded)
