@@ -40,7 +40,8 @@ class MockJevClient:
                 answers[name] = {"type": "noul", "noul": round(float(rng.beta(2.0, 2.0)), 4)}
             elif q["type"] == "choice":
                 opts = list(q["criteria"])
-                probs = rng.dirichlet(np.full(len(opts), 0.6))
+                probs = self._peaked(rng, len(opts), weights=[0.04 if o == "crisis" else 1.0
+                                                               for o in opts])
                 answers[name] = {
                     "type": "choice",
                     "choice": opts[int(probs.argmax())],
@@ -49,7 +50,8 @@ class MockJevClient:
                 }
             else:  # score
                 levels = q["criteria"]
-                probs = rng.dirichlet(np.full(len(levels), 0.8))
+                probs = self._peaked(rng, len(levels), weights=[0.5, 1.0, 1.2, 0.6][:len(levels)]
+                                     + [1.0] * max(0, len(levels) - 4))
                 answers[name] = {
                     "type": "score",
                     "score": round(float(np.dot(np.arange(len(levels)), probs)), 4),
@@ -63,6 +65,15 @@ class MockJevClient:
                            cost_usd=token_cost(input_tokens, self.price))
         result.parsed = parse(answers)
         return result
+
+    @staticmethod
+    def _peaked(rng, n: int, weights: list[float]) -> np.ndarray:
+        """Most mass on one randomly favoured option, like a model with a clear read."""
+        w = np.asarray(weights, float)
+        favoured = rng.choice(n, p=w / w.sum())
+        alpha = np.full(n, 0.4)
+        alpha[favoured] = rng.uniform(2.0, 12.0)
+        return rng.dirichlet(alpha)
 
     def close(self) -> None:
         pass

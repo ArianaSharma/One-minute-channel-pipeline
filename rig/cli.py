@@ -9,7 +9,6 @@ from rig import db
 from rig.config import env, load_config
 
 NOT_YET = {
-    "eval": "Phase 7 (evaluation)",
     "review": "Phase 8 (weekly review)",
 }
 
@@ -62,6 +61,25 @@ def cmd_sim(args, cfg, conn) -> int:
     return 0
 
 
+def cmd_eval(args, cfg, conn) -> int:
+    import json
+
+    from rig.eval.run import HoldoutLocked, evaluate, report_dir
+    from rig.jev_client.base import jev_mode
+
+    mode = jev_mode()
+    split = "holdout" if args.holdout else "train"
+    try:
+        report = evaluate(cfg, conn, mode, split)
+    except HoldoutLocked as exc:
+        lock = json.loads(open(str(exc)).read())
+        print(f"The holdout was already evaluated on {lock['evaluated_utc']} and is locked.")
+        print(f"Stored result (reported as-is): {report_dir(cfg, mode) / lock['report']}")
+        return 3
+    print(f"report: {report}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="rig", description="Jev ICT/SMC research rig (paper/sim only)")
     p.add_argument("--config", help="path to config.yaml (default: repo root)")
@@ -82,6 +100,10 @@ def build_parser() -> argparse.ArgumentParser:
     sc.add_argument("--rescore", action="store_true", help="ask again even if already scored")
 
     sub.add_parser("sim", help="paper-simulate every candidate signal (bar by bar)")
+
+    ev = sub.add_parser("eval", help="compare A (all signals) vs B (Jev-filtered); train by default")
+    ev.add_argument("--holdout", action="store_true",
+                    help="evaluate the holdout ONCE with the frozen train threshold (then locked)")
 
     for name, phase in NOT_YET.items():
         sub.add_parser(name, help=f"not built yet: {phase}")
@@ -109,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
     status = "error"
     try:
         handler = {"fetch": cmd_fetch, "detect": cmd_detect, "score": cmd_score,
-                   "sim": cmd_sim}[args.command]
+                   "sim": cmd_sim, "eval": cmd_eval}[args.command]
         code = handler(args, cfg) if args.command == "fetch" else handler(args, cfg, conn)
         status = "ok" if code == 0 else "partial"
         return code
