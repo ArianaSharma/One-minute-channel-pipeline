@@ -22,7 +22,7 @@ data:
     seed: 7
     correlation: 0.8
 
-db_path: data/rig.db
+db_path: data/rig_{source}.db   # one log DB per data source, so mock and real runs never mix
 
 # ---- Used from Phase 2 on (approved plan; implemented in later phases) ----
 
@@ -47,6 +47,11 @@ risk:
   min_reward_risk: 1.5       # cannot be set lower than 1.5
   news_block_minutes: 2
   news_file: data/news_events.csv
+  news_currencies:           # which currencies' high-impact news each instrument reacts to
+    BTC: [USD]
+    ETH: [USD]
+    XAU/USD: [USD]
+    NDX: [USD]
   correlation_groups:
     - [BTC, ETH]
     - [XAU/USD]
@@ -59,6 +64,7 @@ sim:
 
 jev:
   model: jev-1.13.0            # pinned so thresholds tuned on train stay valid
+  timeout_s: 10.0
   price_per_mtok_input_usd: 0.042
 
 filter:

@@ -43,6 +43,8 @@ class Signal:
     reward_risk: float
     target_type: str            # "opposing_liquidity" | "fixed_r"
     zone_kind: str              # "fvg" | "ob"
+    sweep_extreme: float = 0.0  # the swept wick's extreme (used to label sweep_is_genuine)
+    mss_close: float = 0.0      # close of the MSS bar (used to label direction_agrees)
     snapshot: dict = field(repr=False, default_factory=dict)
 
     @property
@@ -231,6 +233,7 @@ def _build(symbol, direction, sweep_bar, kz: Window, ref: Window, level_high, le
         symbol=symbol, ts=signal_ts, direction=direction, killzone=kz.name,
         entry=float(entry), stop=float(stop), target=float(target), reward_risk=float(rr),
         target_type=target_type, zone_kind=zone.kind,
+        sweep_extreme=float(ext), mss_close=float(f5.close[j]),
     )
     sweep_atr = float(f5.atr[i_first - 1]) or atr_j
     body = abs(sweep_bar["close"] - sweep_bar["open"])

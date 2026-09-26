@@ -71,25 +71,74 @@ def _round_extra(key: str, value):
     return sig(value) if key in PRICE_KEYS else sig(value, 4)
 
 
+def _bucket(x, edges, labels):
+    if x is None:
+        return "unknown"
+    for edge, label in zip(edges, labels):
+        if x < edge:
+            return label
+    return labels[-1]
+
+
+def describe(direction: str, setup: dict, ctx: dict) -> dict:
+    """Plain-language reading of the numbers, computed in code.
+
+    Jev 1.13 is documented as weak at numeric comparison ("keep the arithmetic in code"),
+    so the judgement-relevant facts are also given as named buckets.
+    """
+    out = {
+        "trade": f"{direction} after a sweep of the {setup['reference_session']} session "
+                 f"{'high' if direction == 'short' else 'low'}",
+        "sweep_depth": _bucket(setup.get("sweep_depth_atr"), [0.5, 1.5], ["shallow", "moderate", "deep"]),
+        "displacement": _bucket(setup.get("displacement_atr"), [2, 4], ["weak", "moderate", "strong"]),
+        "structure_shift_speed": _bucket(setup.get("mss_bars_after_sweep"), [4, 9], ["fast", "normal", "slow"]),
+        "entry_zone": "fair value gap" if setup["entry_zone"] == "fvg" else "order block",
+        "reward_to_risk": f"{setup['reward_risk']:.1f} to 1",
+    }
+    if ctx.get("available", True) and "ema20_vs_ema50_pct" in ctx:
+        spread, slope = ctx["ema20_vs_ema50_pct"] or 0.0, ctx["ema20_slope_6h_pct"] or 0.0
+        if spread > 0.3 and slope > 0:
+            trend = "uptrend"
+        elif spread < -0.3 and slope < 0:
+            trend = "downtrend"
+        else:
+            trend = "sideways"
+        out["trend_1h"] = trend
+        out["trade_vs_1h_trend"] = (
+            "with trend" if (trend == "uptrend" and direction == "long")
+            or (trend == "downtrend" and direction == "short")
+            else "counter trend" if trend != "sideways" else "no clear trend"
+        )
+        out["volatility_1h"] = _bucket(ctx.get("atr14_pct"), [0.4, 1.0], ["low", "normal", "high"])
+        out["price_in_24h_range"] = _bucket(ctx.get("position_in_24h_range"), [0.25, 0.75],
+                                            ["near the low", "middle", "near the high"])
+    else:
+        out["trend_1h"] = "not enough history"
+    return out
+
+
 def build_snapshot(signal: "Signal", df5_upto: pd.DataFrame, df1h: pd.DataFrame,
                    setup_extra: dict) -> dict:
     recent = df5_upto.tail(12)
+    ctx = hourly_context(df1h, signal.ts)
+    setup = {
+        "direction": signal.direction,
+        "entry_zone": signal.zone_kind,
+        "entry": sig(signal.entry),
+        "stop": sig(signal.stop),
+        "target": sig(signal.target),
+        "target_type": signal.target_type,
+        "reward_risk": sig(signal.reward_risk, 3),
+        **{k: _round_extra(k, v) for k, v in setup_extra.items()},
+    }
     return {
         "instrument": signal.symbol,
         "time_utc": signal.ts.strftime("%Y-%m-%d %H:%M"),
         "weekday": signal.ts.day_name(),
         "killzone": signal.killzone,
-        "setup": {
-            "direction": signal.direction,
-            "entry_zone": signal.zone_kind,
-            "entry": sig(signal.entry),
-            "stop": sig(signal.stop),
-            "target": sig(signal.target),
-            "target_type": signal.target_type,
-            "reward_risk": sig(signal.reward_risk, 3),
-            **{k: _round_extra(k, v) for k, v in setup_extra.items()},
-        },
-        "context_1h": hourly_context(df1h, signal.ts),
+        "summary": describe(signal.direction, setup, ctx),
+        "setup": setup,
+        "context_1h": ctx,
         "day": day_context(df1h, signal.ts),
         "recent_5m_bars": {
             "columns": ["time", "open", "high", "low", "close"],
