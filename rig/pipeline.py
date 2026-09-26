@@ -183,3 +183,53 @@ def latest_answers(conn: sqlite3.Connection, mode: str) -> pd.DataFrame:
                     if not k.endswith("_probabilities")})
         records.append(rec)
     return pd.DataFrame(records)
+
+
+# ---------------------------------------------------------------- sim
+
+def run_sim(cfg: dict, conn: sqlite3.Connection) -> Counter:
+    from rig.sim import SimParams, simulate
+    from rig.sim.labels import compute_labels
+
+    params = SimParams.from_config(cfg)
+    news = NewsCalendar.from_config(cfg)
+    horizon = pd.Timedelta(hours=cfg["eval"].get("label_horizon_hours", 4))
+    signals = load_signals(conn, "candidate")
+    summary: Counter = Counter()
+    for symbol, group in signals.groupby("symbol"):
+        frames = load_frames(cfg, symbol, ("5m",))
+        try:
+            frames.update(load_frames(cfg, symbol, ("1m",)))
+        except FileNotFoundError:
+            pass
+        m1_times = set(frames["1m"]["ts"]) if "1m" in frames else set()
+        for s in group.itertuples():
+            # 1m bars give fewer same-bar stop/target ties; fall back to 5m where 1m is missing.
+            tf = "1m" if s.ts in m1_times else "5m"
+            r = simulate(s.direction, s.entry, s.stop, s.target, s.ts, frames[tf], params)
+            outcome = r.outcome
+            if r.filled and (hit := news.check(symbol, r.fill_ts)):
+                outcome, r.filled = "news_block_fill", False
+                r.pnl_usd = r.r_multiple = r.fees_usd = None
+                log.info("%s fill voided: %s", s.id, hit.reason())
+            summary[outcome] += 1
+            conn.execute(
+                """INSERT OR REPLACE INTO trades (signal_id, sim_timeframe, filled, fill_ts_utc,
+                       fill_price, exit_ts_utc, exit_price, outcome, quantity, r_multiple, pnl_usd,
+                       fees_usd) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (s.id, tf, int(r.filled), _iso(r.fill_ts), r.fill_price, _iso(r.exit_ts),
+                 r.exit_price, outcome, r.quantity, r.r_multiple, r.pnl_usd, r.fees_usd),
+            )
+            lab = compute_labels(s.direction, s.sweep_extreme, s.mss_close, s.stop, s.target, s.ts,
+                                 frames["5m"], pd.Timedelta(minutes=5), horizon, params.max_hold)
+            conn.execute(
+                """INSERT OR REPLACE INTO labels (signal_id, direction_agrees, sweep_is_genuine,
+                       target_before_stop) VALUES (?,?,?,?)""",
+                (s.id, lab["direction_agrees"], lab["sweep_is_genuine"], lab["target_before_stop"]),
+            )
+        conn.commit()
+    return summary
+
+
+def _iso(ts) -> str | None:
+    return None if ts is None else pd.Timestamp(ts).isoformat()

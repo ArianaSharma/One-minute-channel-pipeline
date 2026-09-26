@@ -9,7 +9,6 @@ from rig import db
 from rig.config import env, load_config
 
 NOT_YET = {
-    "sim": "Phase 5 (paper sim)",
     "eval": "Phase 7 (evaluation)",
     "review": "Phase 8 (weekly review)",
 }
@@ -56,6 +55,13 @@ def cmd_score(args, cfg, conn) -> int:
     return 1 if summary.get("error") else 0
 
 
+def cmd_sim(args, cfg, conn) -> int:
+    from rig import pipeline
+
+    print("paper sim outcomes:", dict(pipeline.run_sim(cfg, conn)))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="rig", description="Jev ICT/SMC research rig (paper/sim only)")
     p.add_argument("--config", help="path to config.yaml (default: repo root)")
@@ -74,6 +80,8 @@ def build_parser() -> argparse.ArgumentParser:
     sc = sub.add_parser("score", help="ask Jev the question battery for each candidate (JEV_MODE)")
     sc.add_argument("--limit", type=int, help="score at most N signals (useful for a first live test)")
     sc.add_argument("--rescore", action="store_true", help="ask again even if already scored")
+
+    sub.add_parser("sim", help="paper-simulate every candidate signal (bar by bar)")
 
     for name, phase in NOT_YET.items():
         sub.add_parser(name, help=f"not built yet: {phase}")
@@ -100,7 +108,8 @@ def main(argv: list[str] | None = None) -> int:
     conn.commit()
     status = "error"
     try:
-        handler = {"fetch": cmd_fetch, "detect": cmd_detect, "score": cmd_score}[args.command]
+        handler = {"fetch": cmd_fetch, "detect": cmd_detect, "score": cmd_score,
+                   "sim": cmd_sim}[args.command]
         code = handler(args, cfg) if args.command == "fetch" else handler(args, cfg, conn)
         status = "ok" if code == 0 else "partial"
         return code
