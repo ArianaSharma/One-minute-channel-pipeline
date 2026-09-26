@@ -1,0 +1,86 @@
+# Research rig configuration. All times are UTC.
+# Secrets never go here: they come from environment variables (.env).
+
+data:
+  # Where later phases read candles from: hyperliquid | synthetic
+  source: hyperliquid
+  cache_dir: data/cache
+  timeframes: [1m, 5m, 15m, 1h]
+  hyperliquid:
+    base_url: https://api.hyperliquid.xyz/info
+    coins: [BTC, ETH]
+    request_pause_s: 0.25      # be polite to the public API
+  twelvedata:
+    # Only used when TWELVEDATA_API_KEY is set.
+    base_url: https://api.twelvedata.com
+    symbols: [XAU/USD, NDX]    # NDX = Nasdaq 100 index; try QQQ if your plan lacks index data
+    request_pause_s: 8.0       # free tier is 8 requests/minute
+    history_days: 180
+  synthetic:
+    symbols: [BTC, ETH]
+    days: 365
+    seed: 7
+    correlation: 0.8
+
+db_path: data/rig_{source}.db   # one log DB per data source, so mock and real runs never mix
+
+# ---- Used from Phase 2 on (approved plan; implemented in later phases) ----
+
+sessions:        # used to find the "prior session" high/low
+  asia:   ["00:00", "07:00"]
+  london: ["07:00", "12:30"]
+  ny:     ["12:30", "21:00"]
+
+killzones:       # signals only fire inside these
+  london: ["07:00", "10:00"]
+  ny_am:  ["12:30", "15:00"]
+
+setup:
+  sweep_timeframe: 15m
+  entry_timeframe: 5m
+  ote_low: 0.62
+  ote_high: 0.79
+  fallback_target_r: 2.0
+
+risk:
+  risk_per_trade_usd: 25     # allowed: 25 or 50
+  min_reward_risk: 1.5       # cannot be set lower than 1.5
+  news_block_minutes: 2
+  news_file: data/news_events.csv
+  news_currencies:           # which currencies' high-impact news each instrument reacts to
+    BTC: [USD]
+    ETH: [USD]
+    XAU/USD: [USD]
+    NDX: [USD]
+  correlation_groups:
+    - [BTC, ETH]
+    - [XAU/USD]
+    - [NDX]
+
+sim:
+  # Hyperliquid base-tier perps fees; adjust to your tier / venue.
+  maker_fee_bps: 1.5          # limit entry and target exit
+  taker_fee_bps: 4.5          # stop and timeout exits (market)
+  slippage_bps: 1.0           # applied to market exits only
+  entry_expiry_bars: 12       # 5m bars the limit order stays live (12 = 1 hour)
+  max_hold_hours: 24          # close at market after this
+
+jev:
+  model: jev-1.13.0            # pinned so thresholds tuned on train stay valid
+  timeout_s: 10.0
+  price_per_mtok_input_usd: 0.042
+
+filter:
+  min_confidence: 0.60
+  min_setup_quality: 2.0
+  target_before_stop_threshold: 0.55   # chosen on train in Phase 7
+
+eval:
+  holdout_fraction: 0.25
+  reports_dir: reports
+  label_horizon_hours: 4      # horizon for direction_agrees / sweep_is_genuine labels
+  bootstrap_samples: 5000
+  min_train_trades: 20        # threshold search ignores settings that leave fewer train trades
+
+review:
+  model: claude-opus-5-5

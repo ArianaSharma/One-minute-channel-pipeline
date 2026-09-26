@@ -1,0 +1,32 @@
+[project]
+name = "jev-rig"
+version = "0.1.0"
+description = "Phase 1 research rig: does Jev improve rule-based ICT/SMC setups? Paper/sim only."
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2",
+    "pyarrow>=15",
+    "numpy>=1.26",
+    "requests>=2.31",
+    "pyyaml>=6",
+    "python-dotenv>=1.0",
+    "typesafe-sdk>=0.7",
+    "matplotlib>=3.8",
+    "anthropic>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+rig = "rig.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["rig*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

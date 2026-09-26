@@ -1,0 +1,63 @@
+{
+  "threshold": 0.3,
+  "reason": "best train expectancy with >= 20 trades",
+  "grid": [
+    {
+      "threshold": 0.3,
+      "trades": 24,
+      "expectancy_r": 0.10462790273787893
+    },
+    {
+      "threshold": 0.35,
+      "trades": 24,
+      "expectancy_r": 0.10462790273787893
+    },
+    {
+      "threshold": 0.4,
+      "trades": 21,
+      "expectancy_r": -0.06197256859027146
+    },
+    {
+      "threshold": 0.45,
+      "trades": 18,
+      "expectancy_r": 0.15837364403930787
+    },
+    {
+      "threshold": 0.5,
+      "trades": 15,
+      "expectancy_r": 0.46842621342880963
+    },
+    {
+      "threshold": 0.55,
+      "trades": 14,
+      "expectancy_r": 0.6100155882639945
+    },
+    {
+      "threshold": 0.6,
+      "trades": 14,
+      "expectancy_r": 0.6100155882639945
+    },
+    {
+      "threshold": 0.65,
+      "trades": 14,
+      "expectancy_r": 0.6100155882639945
+    },
+    {
+      "threshold": 0.7,
+      "trades": 12,
+      "expectancy_r": 0.9619796145485316
+    },
+    {
+      "threshold": 0.75,
+      "trades": 11,
+      "expectancy_r": 0.7890671236788557
+    },
+    {
+      "threshold": 0.8,
+      "trades": 7,
+      "expectancy_r": 0.38597050439806646
+    }
+  ],
+  "chosen_utc": "2026-09-26T21:41:16.422232+00:00",
+  "config_hash": "f7e94b4fc34c"
+}

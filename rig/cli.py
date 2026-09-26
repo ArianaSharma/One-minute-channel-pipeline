@@ -1,0 +1,146 @@
+"""Single entry point: python -m rig fetch|detect|score|sim|eval|review"""
+from __future__ import annotations
+
+import argparse
+import logging
+from datetime import datetime, timezone
+
+from rig import db
+from rig.config import env, load_config
+
+def cmd_fetch(args, cfg, conn) -> int:
+    from rig.data import fetch
+
+    intervals = args.intervals or cfg["data"]["timeframes"]
+    results = []
+    if args.source == "synthetic":
+        results += fetch.build_synthetic(cfg, intervals)
+    else:
+        if args.source in ("auto", "hyperliquid"):
+            coins = args.symbols or cfg["data"]["hyperliquid"]["coins"]
+            results += fetch.fetch_hyperliquid(cfg, coins, intervals)
+        if args.source in ("auto", "twelvedata"):
+            if not env("TWELVEDATA_API_KEY"):
+                print("Twelve Data skipped: TWELVEDATA_API_KEY is not set")
+            else:
+                symbols = args.symbols or cfg["data"]["twelvedata"]["symbols"]
+                results += fetch.fetch_twelvedata(cfg, symbols, intervals)
+    for r in results:
+        print(r.line())
+    return 1 if any(r.error for r in results) else 0
+
+
+def cmd_detect(args, cfg, conn) -> int:
+    from rig import pipeline
+
+    summary = pipeline.run_detect(cfg, conn)
+    print("summary:", dict(summary))
+    return 0
+
+
+def cmd_score(args, cfg, conn) -> int:
+    from rig import pipeline
+    from rig.jev_client.base import jev_mode
+
+    mode = jev_mode()
+    summary = pipeline.run_score(cfg, conn, mode, limit=args.limit, rescore=args.rescore)
+    cost = summary.pop("cost_usd_x1e6", 0) / 1e6
+    print(f"JEV_MODE={mode}: {dict(summary)}  token cost ${cost:.6f}")
+    return 1 if summary.get("error") else 0
+
+
+def cmd_sim(args, cfg, conn) -> int:
+    from rig import pipeline
+
+    print("paper sim outcomes:", dict(pipeline.run_sim(cfg, conn)))
+    return 0
+
+
+def cmd_eval(args, cfg, conn) -> int:
+    import json
+
+    from rig.eval.run import HoldoutLocked, evaluate, report_dir
+    from rig.jev_client.base import jev_mode
+
+    mode = jev_mode()
+    split = "holdout" if args.holdout else "train"
+    try:
+        report = evaluate(cfg, conn, mode, split)
+    except HoldoutLocked as exc:
+        lock = json.loads(open(str(exc)).read())
+        print(f"The holdout was already evaluated on {lock['evaluated_utc']} and is locked.")
+        print(f"Stored result (reported as-is): {report_dir(cfg, mode) / lock['report']}")
+        return 3
+    print(f"report: {report}")
+    return 0
+
+
+def cmd_review(args, cfg, conn) -> int:
+    from rig.eval.run import report_dir
+    from rig.jev_client.base import jev_mode
+    from rig.review.weekly import run_review
+
+    out = run_review(cfg, report_dir(cfg, jev_mode()), dry_run=args.dry_run)
+    print(f"review: {out}")
+    return 0
+
+
+COMMANDS = {"fetch": cmd_fetch, "detect": cmd_detect, "score": cmd_score, "sim": cmd_sim,
+            "eval": cmd_eval, "review": cmd_review}
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="rig", description="Jev ICT/SMC research rig (paper/sim only)")
+    p.add_argument("--config", help="path to config.yaml (default: repo root)")
+    p.add_argument("-v", "--verbose", action="store_true")
+    p.add_argument("--data-source", choices=["hyperliquid", "synthetic"],
+                   help="override data.source in config (synthetic = offline mock runs)")
+    sub = p.add_subparsers(dest="command", required=True)
+
+    f = sub.add_parser("fetch", help="download candles into the local parquet cache")
+    f.add_argument("--source", choices=["auto", "hyperliquid", "twelvedata", "synthetic"],
+                   default="auto", help="auto = Hyperliquid, plus Twelve Data if its key is set")
+    f.add_argument("--symbols", nargs="+", help="override the symbols in config")
+    f.add_argument("--intervals", nargs="+", choices=["1m", "5m", "15m", "1h"])
+
+    sub.add_parser("detect", help="find ICT setups in cached candles and log them")
+    sc = sub.add_parser("score", help="ask Jev the question battery for each candidate (JEV_MODE)")
+    sc.add_argument("--limit", type=int, help="score at most N signals (useful for a first live test)")
+    sc.add_argument("--rescore", action="store_true", help="ask again even if already scored")
+
+    sub.add_parser("sim", help="paper-simulate every candidate signal (bar by bar)")
+
+    ev = sub.add_parser("eval", help="compare A (all signals) vs B (Jev-filtered); train by default")
+    ev.add_argument("--holdout", action="store_true",
+                    help="evaluate the holdout ONCE with the frozen train threshold (then locked)")
+
+    rv = sub.add_parser("review", help="weekly Claude review of eval + trade log (suggests only)")
+    rv.add_argument("--dry-run", action="store_true",
+                    help="write the exact prompt to reports/ without calling the API")
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING,
+                        format="%(levelname)s %(name)s: %(message)s")
+    cfg = load_config(args.config)
+    if args.data_source:
+        cfg["data"]["source"] = args.data_source
+
+    from rig.pipeline import db_path
+    conn = db.connect(db_path(cfg))
+    started = datetime.now(timezone.utc).isoformat()
+    run_id = conn.execute("INSERT INTO runs (command, started_utc) VALUES (?, ?)",
+                          (args.command, started)).lastrowid
+    conn.commit()
+    status = "error"
+    try:
+        code = COMMANDS[args.command](args, cfg, conn)
+        status = "ok" if code == 0 else "partial"
+        return code
+    finally:
+        conn.execute("UPDATE runs SET finished_utc = ?, status = ? WHERE id = ?",
+                     (datetime.now(timezone.utc).isoformat(), status, run_id))
+        conn.commit()
+        conn.close()
