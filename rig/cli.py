@@ -8,12 +8,7 @@ from datetime import datetime, timezone
 from rig import db
 from rig.config import env, load_config
 
-NOT_YET = {
-    "review": "Phase 8 (weekly review)",
-}
-
-
-def cmd_fetch(args, cfg) -> int:
+def cmd_fetch(args, cfg, conn) -> int:
     from rig.data import fetch
 
     intervals = args.intervals or cfg["data"]["timeframes"]
@@ -80,6 +75,20 @@ def cmd_eval(args, cfg, conn) -> int:
     return 0
 
 
+def cmd_review(args, cfg, conn) -> int:
+    from rig.eval.run import report_dir
+    from rig.jev_client.base import jev_mode
+    from rig.review.weekly import run_review
+
+    out = run_review(cfg, report_dir(cfg, jev_mode()), dry_run=args.dry_run)
+    print(f"review: {out}")
+    return 0
+
+
+COMMANDS = {"fetch": cmd_fetch, "detect": cmd_detect, "score": cmd_score, "sim": cmd_sim,
+            "eval": cmd_eval, "review": cmd_review}
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="rig", description="Jev ICT/SMC research rig (paper/sim only)")
     p.add_argument("--config", help="path to config.yaml (default: repo root)")
@@ -105,8 +114,9 @@ def build_parser() -> argparse.ArgumentParser:
     ev.add_argument("--holdout", action="store_true",
                     help="evaluate the holdout ONCE with the frozen train threshold (then locked)")
 
-    for name, phase in NOT_YET.items():
-        sub.add_parser(name, help=f"not built yet: {phase}")
+    rv = sub.add_parser("review", help="weekly Claude review of eval + trade log (suggests only)")
+    rv.add_argument("--dry-run", action="store_true",
+                    help="write the exact prompt to reports/ without calling the API")
     return p
 
 
@@ -118,10 +128,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.data_source:
         cfg["data"]["source"] = args.data_source
 
-    if args.command in NOT_YET:
-        print(f"`rig {args.command}` is not built yet: {NOT_YET[args.command]}")
-        return 2
-
     from rig.pipeline import db_path
     conn = db.connect(db_path(cfg))
     started = datetime.now(timezone.utc).isoformat()
@@ -130,9 +136,7 @@ def main(argv: list[str] | None = None) -> int:
     conn.commit()
     status = "error"
     try:
-        handler = {"fetch": cmd_fetch, "detect": cmd_detect, "score": cmd_score,
-                   "sim": cmd_sim, "eval": cmd_eval}[args.command]
-        code = handler(args, cfg) if args.command == "fetch" else handler(args, cfg, conn)
+        code = COMMANDS[args.command](args, cfg, conn)
         status = "ok" if code == 0 else "partial"
         return code
     finally:

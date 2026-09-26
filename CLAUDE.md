@@ -35,3 +35,11 @@ can improve discretionary ICT/SMC trade setups. Research and paper trading only.
 ## Review script
 
 `rig review` only **suggests**. It must never change code, thresholds, rules, or config.
+
+## Working in this repo
+
+- Setup: `uv venv && uv pip install -e ".[dev]"`; tests: `python -m pytest` (must stay green).
+- Offline end-to-end check: `JEV_MODE=mock python -m rig --data-source synthetic <fetch --source synthetic|detect|score|sim|eval>`.
+- Mock and real runs use separate DBs (`data/rig_<source>.db`) and report folders
+  (`reports/<source>_<mode>/`). `reports/sample/` is the committed mock example.
+- Never delete or edit a `holdout_lock.json` to re-run a holdout.

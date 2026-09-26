@@ -12,6 +12,7 @@ dependencies = [
     "python-dotenv>=1.0",
     "typesafe-sdk>=0.7",
     "matplotlib>=3.8",
+    "anthropic>=1.0",
 ]
 
 [project.optional-dependencies]
