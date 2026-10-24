@@ -1,0 +1,21 @@
+{
+  "slug": "tu-hai-meri-kiran-hc",
+  "tag": "COURT UPDATE",
+  "source_line": "Sources: Bombay HC order (19 Oct 2026) via Bar & Bench, Bollywood Hungama",
+  "scenes": [
+    {"say": "A High Court just hit pause on Sonakshi Sinha's new film. Here is why.",
+     "head": "RELEASE\nON HOLD", "sub": "Sonakshi Sinha's new film", "icon": "gavel", "accent": "#ff4d4d"},
+    {"say": "Tu Hai Meri Kiran, a romantic thriller starring Sonakshi Sinha and Zaheer Iqbal, was set to hit theatres on October twenty-third.",
+     "head": "TU HAI\nMERI KIRAN", "sub": "Romantic thriller · was due 23 Oct", "icon": "film", "accent": "#ffc83d"},
+    {"say": "But on October nineteenth, the Bombay High Court stopped its commercial release.",
+     "head": "BOMBAY\nHIGH COURT", "sub": "Order dated 19 Oct 2026", "icon": "gavel", "accent": "#ff4d4d"},
+    {"say": "The reason is money. Co-producer AND Movie Products put eight point eight five crore rupees into the film, and the deal said it had to be repaid before release.",
+     "head": "₹8.85\nCRORE", "sub": "Invested by the co-producer", "icon": "coin", "accent": "#3ddc84"},
+    {"say": "So the court told producer Echelon Productions to secure that amount, plus fifteen percent yearly interest, before the film can open.",
+     "head": "+15%\nINTEREST", "sub": "Security must be deposited first", "icon": "coin", "accent": "#3ddc84"},
+    {"say": "The judge said this is not about blocking the film forever. Once the money is secured, it can release, and the final dispute goes to arbitration.",
+     "head": "NOT\nBANNED", "sub": "Can open once money is secured", "icon": "film", "accent": "#ffc83d"},
+    {"say": "Would you still watch it in theatres? Tell us in the comments, and follow Celebrity-Verse for more.",
+     "head": "WOULD YOU\nWATCH IT?", "sub": "Tell us in the comments", "icon": "ask", "accent": "#7aa2ff"}
+  ]
+}
