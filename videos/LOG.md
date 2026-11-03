@@ -8,3 +8,4 @@
 - 2026-10-31 | Ramayana gets U certificate with no cuts, runs 3 hrs 15 min | 2026-10-31-ramayana-u-certificate
 - 2026-11-01 | T-Series bags King music rights for 50 years via Zee Music | 2026-11-01-king-music-rights-t-series
 - 2026-11-02 | King first song Tu Mil Jaaye out on SRK's 61st birthday; film releases Dec 24 | 2026-11-02-king-first-song-tu-mil-jaaye
+- 2026-11-03 | Bombay HC grants anti-piracy John Doe order for Ramayana before Nov 5 release | 2026-11-03-ramayana-piracy-injunction
