@@ -10,3 +10,4 @@
 - 2026-11-02 | King first song Tu Mil Jaaye out on SRK's 61st birthday; film releases Dec 24 | 2026-11-02-king-first-song-tu-mil-jaaye
 - 2026-11-03 | Bombay HC grants anti-piracy John Doe order for Ramayana before Nov 5 release | 2026-11-03-ramayana-piracy-injunction
 - 2026-11-04 | Ramayana pre-sales top ₹100 crore worldwide on release eve | 2026-11-04-ramayana-100-crore-advance
+- 2026-11-05 | Ramayana Part 2 confirmed for Diwali 2028 | 2026-11-05-ramayana-part-2-diwali-2028
