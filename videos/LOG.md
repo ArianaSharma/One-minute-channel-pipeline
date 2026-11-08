@@ -13,3 +13,4 @@
 - 2026-11-05 | Ramayana Part 2 confirmed for Diwali 2028 | 2026-11-05-ramayana-part-2-diwali-2028
 - 2026-11-06 | Ramayana opens at ₹64.85 crore net, sets pre-Diwali Hindi record | 2026-11-06-ramayana-day-1-box-office
 - 2026-11-07 | Ramayana crosses ₹112.9 crore India net in two days, ₹221 crore worldwide | 2026-11-07-ramayana-day-2-box-office
+- 2026-11-08 | Ramayana earns ₹69.8 crore on day 3, ₹182.7 crore India net in three days | 2026-11-08-ramayana-day-3-box-office
