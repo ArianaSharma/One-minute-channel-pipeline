@@ -17,3 +17,4 @@
 - 2026-11-09 | Ramayana opening weekend: ₹238.85 crore India net, Diwali-release record | 2026-11-09-ramayana-opening-weekend-box-office
 - 2026-11-10 | Ramayana earns record ₹107.5 crore on first Monday, ₹346 crore India net in 5 days | 2026-11-10-ramayana-day-5-monday-record
 - 2026-11-11 | Ramayana earns ₹94.1 crore on day 6, crosses ₹823 crore worldwide | 2026-11-11-ramayana-day-6-800-crore-worldwide
+- 2026-11-12 | Ramayana earns ₹70.65 crore on day 7, crosses ₹511 crore India net in first week | 2026-11-12-ramayana-day-7-511-crore
