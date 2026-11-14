@@ -19,3 +19,4 @@
 - 2026-11-11 | Ramayana earns ₹94.1 crore on day 6, crosses ₹823 crore worldwide | 2026-11-11-ramayana-day-6-800-crore-worldwide
 - 2026-11-12 | Ramayana earns ₹70.65 crore on day 7, crosses ₹511 crore India net in first week | 2026-11-12-ramayana-day-7-511-crore
 - 2026-11-13 | Ramayana crosses ₹1,000 crore worldwide in 8 days, 11th Indian film to do so | 2026-11-13-ramayana-1000-crore-worldwide
+- 2026-11-14 | Dhurandhar opens Indian Panorama, Ramayana leads BRICS showcase at IFFI Goa 2026 | 2026-11-14-dhurandhar-ramayana-iffi-goa
