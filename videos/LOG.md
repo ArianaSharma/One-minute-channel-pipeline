@@ -23,3 +23,4 @@
 - 2026-11-15 | Ramayana earns ₹68.71 crore on day 10, biggest second Saturday ever | 2026-11-15-ramayana-day-10-second-saturday
 - 2026-11-16 | Ramayana earns ₹75 crore on day 11, biggest second Sunday for a Hindi film | 2026-11-16-ramayana-day-11-second-sunday-record
 - 2026-11-17 | Ramayana crosses ₹750 crore India net in 12 days; second Monday ₹28-33 crore | 2026-11-17-ramayana-day-12-second-monday
+- 2026-11-18 | Ramayana earns ₹28.7 crore on day 13, ₹1,483 crore worldwide; Pushpa 2 next | 2026-11-18-ramayana-day-13-1483-crore-worldwide
