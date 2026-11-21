@@ -26,3 +26,4 @@
 - 2026-11-18 | Ramayana earns ₹28.7 crore on day 13, ₹1,483 crore worldwide; Pushpa 2 next | 2026-11-18-ramayana-day-13-1483-crore-worldwide
 - 2026-11-19 | Yeh Prem Mol Liya trailer out; Sooraj Barjatya film releases Nov 27 | 2026-11-19-yeh-prem-mol-liya-trailer
 - 2026-11-20 | Ramayana crosses ₹1,500 crore worldwide, ₹1,547 crore in 15 days | 2026-11-20-ramayana-1500-crore-worldwide
+- 2026-11-21 | Avengers: Doomsday India advance bookings near ₹42 crore gross ahead of Dec 17 release | 2026-11-21-avengers-doomsday-india-advance-42-crore
