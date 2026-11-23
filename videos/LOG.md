@@ -28,3 +28,4 @@
 - 2026-11-20 | Ramayana crosses ₹1,500 crore worldwide, ₹1,547 crore in 15 days | 2026-11-20-ramayana-1500-crore-worldwide
 - 2026-11-21 | Avengers: Doomsday India advance bookings near ₹42 crore gross ahead of Dec 17 release | 2026-11-21-avengers-doomsday-india-advance-42-crore
 - 2026-11-22 | Ramayana crosses ₹900 crore India net in 17 days, ₹1,616 crore worldwide | 2026-11-22-ramayana-day-17-900-crore
+- 2026-11-23 | Drishyam: The Conclusion streams on Netflix from November 27 | 2026-11-23-drishyam-conclusion-netflix-november-27
