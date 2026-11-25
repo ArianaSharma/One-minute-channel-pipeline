@@ -30,3 +30,4 @@
 - 2026-11-22 | Ramayana crosses ₹900 crore India net in 17 days, ₹1,616 crore worldwide | 2026-11-22-ramayana-day-17-900-crore
 - 2026-11-23 | Drishyam: The Conclusion streams on Netflix from November 27 | 2026-11-23-drishyam-conclusion-netflix-november-27
 - 2026-11-24 | Ramayana crosses ₹1,700 crore worldwide, ₹955 crore India net in 19 days | 2026-11-24-ramayana-1700-crore-worldwide
+- 2026-11-25 | Ramayana jumps 35% on day 20 to ₹15.98 crore, nears ₹973 crore India net | 2026-11-25-ramayana-day-20-jump-973-crore
