@@ -32,3 +32,4 @@
 - 2026-11-24 | Ramayana crosses ₹1,700 crore worldwide, ₹955 crore India net in 19 days | 2026-11-24-ramayana-1700-crore-worldwide
 - 2026-11-25 | Ramayana jumps 35% on day 20 to ₹15.98 crore, nears ₹973 crore India net | 2026-11-25-ramayana-day-20-jump-973-crore
 - 2026-11-26 | Yeh Prem Mol Liya vs Gunmaaster G9: Friday box office clash, advance bookings | 2026-11-26-yeh-prem-mol-liya-vs-gunmaaster-g9-clash
+- 2026-11-27 | Ramayana earns ₹9.65 crore on day 22, nears ₹1,000 crore India net club | 2026-11-27-ramayana-day-22-nears-1000-crore-net
